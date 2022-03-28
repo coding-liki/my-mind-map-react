@@ -1,0 +1,35 @@
+@font-face {
+    font-family: "MarkScript";
+    src: url("../../public/fonts/MarckScript-Regular.ttf") format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.page-container{
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    margin: 0 auto;
+}
+.page-container > header {
+    display: flex;
+}
+.page-container > header .logo {
+    font-size: 32px;
+    font-weight: 600;
+    padding: 12px 4px;
+    color: rgb(0, 0, 0);
+    font-family: "MarkScript",serif;
+    cursor: default;
+    display: inline-flex;
+    align-items: center;
+
+}
+.page-container > header .logo > .smaller{
+    font-size: 22px;
+    font-weight: 400;
+}
+
+.page-container > header > .right{
+    justify-self: end;
+}
