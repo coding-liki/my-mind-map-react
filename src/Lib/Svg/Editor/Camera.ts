@@ -7,9 +7,9 @@ export class Camera {
 
     initViewPort: ViewPort;
 
-    constructor(position: Vector, viewPort: ViewPort) {
+    constructor(position: Vector, viewPort: ViewPort, initPosition?: Vector) {
         this.position = position;
-        this.initPosition = position.clone();
+        this.initPosition = initPosition ? initPosition : position.clone();
         this.initViewPort = viewPort;
     }
 

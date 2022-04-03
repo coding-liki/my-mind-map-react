@@ -8,12 +8,39 @@
 .page-container{
     display: flex;
     flex-direction: column;
-    height: 100%;
+    max-height: 100%;
+}
+
+/** flex things **/
+.column{
+    display: flex;
+    flex-direction: column;
+}
+.row {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+}
+
+.right{
+    margin-left: auto;
+}
+
+.left{
+    margin-right: auto;
+}
+
+.center{
     margin: 0 auto;
 }
-.page-container > header {
-    display: flex;
+
+.full{
+    flex: 1 1 auto;
 }
+
+
+
+/** header **/
 .page-container > header .logo {
     font-size: 32px;
     font-weight: 600;

@@ -9,15 +9,15 @@ export interface Event {
 }
 
 /************** Page events *************/
-export const PAGE_ENABLED_BEFORE = 'pageEnabledBefore';
+export const PAGE_ENABLED = 'pageEnabled';
 export const PAGE_DISABLED_BEFORE = 'pageDisabledBefore';
 export const PAGE_ENABLED_AFTER = 'pageEnabledAfter';
 export const PAGE_DISABLED_AFTER = 'pageDisabledAfter';
 export const PAGE_SET_NAME = 'pageSetName';
 export const PAGE_UPDATED = 'pageUpdated';
 
-export class PageEnabledBefore implements Event {
-    name = PAGE_ENABLED_BEFORE;
+export class PageEnabled implements Event {
+    name = PAGE_ENABLED;
 
     pageName: string;
 

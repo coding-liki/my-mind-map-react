@@ -1,6 +1,6 @@
 import type {fn1} from "./Helpers/Types";
 import type {Event} from "./Constants/Events";
-type eventCallback = fn1<Event, void>;
+type eventCallback = fn1<any, void>;
 
 export class EventDispatcher {
     eventListeners: {[key: string] : eventCallback[]} = {};
