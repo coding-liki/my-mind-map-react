@@ -1,8 +1,10 @@
 import type {Vector} from "../Math";
 import type MindMap from "./MindMap";
 import {LinkType} from "./Link";
+import {WithPosition} from "../Svg/Editor/Camera";
 
-export class Node {
+
+export class Node implements WithPosition{
 
     id: number;
     text: string;

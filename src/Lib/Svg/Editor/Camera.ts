@@ -1,7 +1,11 @@
 import {Vector} from "../../Math";
 import {ViewPort} from "./ViewPort";
 
-export class Camera {
+export interface WithPosition{
+    position: Vector;
+}
+
+export class Camera implements WithPosition{
     position: Vector;
     initPosition: Vector;
 
@@ -27,10 +31,10 @@ export class Camera {
     }
 
 
-    move(dir: Vector): Camera{
+    move(dir: Vector, withPosition: WithPosition = this ): Camera{
         let diff = this.position.z/this.initPosition.z;
 
-        this.position.add(dir.mul(diff));
+        withPosition.position.add(dir.mul(diff));
 
         return this;
     }

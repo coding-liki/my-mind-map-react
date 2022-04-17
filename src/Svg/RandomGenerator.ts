@@ -74,8 +74,10 @@ export default class RandomGenerator {
         return " S" + bBezier.x + " " + bBezier.y + " ," + b.x + " " + b.y;
     }
 
-    static generateNode(x: number, y: number, id: number, text: string = 'Новая Нода'): NodeView {
+    static generateNode(x: number, y: number, id: number, text: string = 'Новая Нода'): Node {
         let node: Node = new Node(id, text,  new Vector(x, y));
-        return new NodeView(node);
+
+        return node;
+        // return new NodeView(node);
     }
 };

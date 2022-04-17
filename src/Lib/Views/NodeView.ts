@@ -2,6 +2,7 @@ import {Link} from "../Models/Link";
 import type {Node} from "../Models/Node";
 import RandomGenerator from "../../Svg/RandomGenerator";
 import EditableText from "../../Svg/EditableText";
+import {RefObject} from "react";
 
 export class NodeView {
     node: Node;
@@ -11,11 +12,12 @@ export class NodeView {
     }
 
     link?: Link;
-    nodeElement?: SVGElement;
+    nodeElement?: RefObject<SVGGElement>;
 
-    nodePath?: string;
-    nodeTextWidth?: number;
-    nodeTextHeight?: number;
+    nodePath: string = '';
+    nodeTextWidth: number = 0;
+    nodeTextHeight: number = 0;
+    selected: boolean = false;
 
     updateLink(): NodeView {
         if (this.node.parentLinkNode) {
@@ -30,8 +32,8 @@ export class NodeView {
 
     regeneratePath(): NodeView {
         console.log('regen', this.node.id);
-        if (this.nodeElement) {
-            let textElement: SVGGraphicsElement|null = this.nodeElement.querySelector('.text');
+        if (this.nodeElement && this.nodeElement.current) {
+            let textElement: SVGGraphicsElement|null = this.nodeElement.current.querySelector('.text');
             if(textElement) {
                 let bBox = textElement.getBBox();
 
@@ -39,15 +41,15 @@ export class NodeView {
                 this.nodeTextHeight = bBox.height;
 
                 let generator: RandomGenerator = new RandomGenerator();
-                this.nodePath = generator.generateBorder(this.nodeTextWidth * 1.2, this.nodeTextHeight * 1.7, 0.1, 0.3);
+                this.nodePath = generator.generateBorder(this.nodeTextWidth * 1.2, this.nodeTextHeight * 1.7, 0.3, 0.5);
             }
         }
         return this;
     }
 
     refillText(): NodeView {
-        if (this.nodeElement) {
-            let textElement: SVGGraphicsElement|null = this.nodeElement.querySelector('.text');
+        if (this.nodeElement && this.nodeElement.current) {
+            let textElement: SVGGraphicsElement|null = this.nodeElement.current.querySelector('.text');
             if(textElement) {
                 textElement.children[0].innerHTML = '';
                 let editableText = new EditableText();
