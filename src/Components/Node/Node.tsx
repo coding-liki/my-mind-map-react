@@ -47,7 +47,6 @@ class Node extends React.Component<Props, State> {
 
                 <g className="colorWhite">
                     <path id={"border" + this.state.nodeView.node.id}
-                          transform={"translate(0, " + (this.state.nodeView.nodeTextHeight + 6) / 2 + ")"}
                           d={this.state.nodeView.nodePath}
                           stroke="black"
                           fill="currentColor"
@@ -55,9 +54,7 @@ class Node extends React.Component<Props, State> {
                     />
                 </g>
 
-                <g
-                    transform={"translate(0, " + (this.state.nodeView.nodeTextHeight + 6) / 2 + ")"}
-                >
+                <g>
                     {
                         this.state.nodeView.nodePath &&
 
@@ -68,7 +65,10 @@ class Node extends React.Component<Props, State> {
                         />
                     }
                 </g>
-                <g className="text">
+                <g className="text"
+                   transform={"translate(0, " + (-this.state.nodeView.nodeTextHeight-6) / 2 + ")"}
+
+                >
                     <text className="unselectable alexander" textAnchor="middle" fontSize="20">
                     </text>
                 </g>
@@ -85,7 +85,6 @@ class Node extends React.Component<Props, State> {
                              this.eventDispatcher.dispatch(new NodeStartEdit(this.state.nodeView));
                          }}/>
                 </g>
-                <circle cx="0" cy="0" r="5" fill="red"/>
 
             </g>
         );

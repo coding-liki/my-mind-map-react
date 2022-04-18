@@ -7,7 +7,8 @@ import MindMap from "../Lib/Models/MindMap";
 import RandomGenerator from "../Svg/RandomGenerator";
 
 function AllPages() {
-    let firstNode = RandomGenerator.generateNode(0,0,1, 'Первая нода');
+    let firstNode = RandomGenerator.generateNode(0,0,1, 'Первая нода' +
+        "\nс кучей вещей");
     let secondNode = RandomGenerator.generateNode(100,100,2, 'Вторая нода');
 
     secondNode.parentLinkNode = firstNode;
