@@ -25,10 +25,19 @@ export class Node implements WithPosition{
     toMindMap?: MindMap;
 
     getLinkType(): LinkType {
-        return LinkType.first;
+        let type: LinkType =  LinkType.first
+        let parent = this.parentLinkNode;
+        while(parent !== this.parentNode){
+            parent = parent?.parentLinkNode;
+            type++;
+        }
+        return type;
     }
 
     updateText(newText: string){
+        if(newText.length < 1){
+            newText = "Пусто";
+        }
         this.text = newText
         this.eventDispatcher.dispatch(new NodeUpdateText(this.id))
     }

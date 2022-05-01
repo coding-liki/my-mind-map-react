@@ -3,10 +3,10 @@
     text-align: center;
     resize: none;
     line-height: 1em;
-    background: transparent;
-    border: none;
+    background: white;
+    /*border: none;*/
 }
 .textEditor textarea:focus-visible {
-    border: none;
-    outline: none;
+    /*border: none;*/
+    /*outline: none;*/
 }

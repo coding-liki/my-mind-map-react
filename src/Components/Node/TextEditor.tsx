@@ -1,4 +1,4 @@
-import React, {ChangeEvent} from "react";
+import React, {ChangeEvent, RefObject} from "react";
 import {NodeView} from "../../Lib/Views/NodeView";
 import '../../css/TextEditor.css';
 import {NodeSelected} from "../../Lib/Constants/Events";
@@ -15,18 +15,42 @@ type State = {
 
 class TextEditor extends React.Component<Props, State> {
 
+    textEditor: RefObject<HTMLTextAreaElement>
     state: State
     nodeEventDispatcher: EventDispatcher = EventDispatcher.instance(NODE);
 
-    constructor(props: Props, state: State) {
-        super(props, state);
+    constructor(props: Props) {
+        super(props);
+        this.textEditor = React.createRef<HTMLTextAreaElement>();
+        // this.nodeEventDispatcher.subscribe(NODE_START_EDIT, (event: NodeStartEdit) => {
+        //     console.log("trying to trigger focus")
+        //     triggerFocus( this.textEditor.current);
+        // })
         this.state = {nodeView: props.nodeView}
     }
 
     textChanged = (event: ChangeEvent<HTMLTextAreaElement>) => {
-        this.props.nodeView.node.updateText(event.target.value);
+
+        this.props.nodeView.node.updateText(this.prepareText(event.target.value));
 
         this.setState(this.state)
+    }
+
+    prepareText(text: string): string {
+        text = text.replace(/^\s+$/g, 'Пусто')
+        // // text = text.replace(/ $/g, '')
+        // text = text.replace(/^ /g, '')
+        // // text = text.replace(/\n\n/g, '\n')
+        // text = text.replace(/^\n/g, '')
+        // text = text.replace(/\n /g, '\n')
+        // text = text.replace(/ \n/g, '\n')
+        // text = text.replace(/\n$/g, '')
+
+        return text;
+    }
+
+    componentDidMount() {
+        this.textEditor.current?.focus();
     }
 
     render() {
@@ -35,16 +59,18 @@ class TextEditor extends React.Component<Props, State> {
 
         return this.props.nodeView ? (
             <foreignObject
-                transform={"translate(" + (this.props.nodeView.node.position.x - width / 2-2) + ", " + (this.props.nodeView.node.position.y - height / 2) + ")"}
+                transform={"translate(" + (this.props.nodeView.node.position.x - width / 2 - 2) + ", " + (this.props.nodeView.node.position.y - height / 2) + ")"}
                 width={width + "px"}
                 height={height + "px"}
                 fill="white">
 
                 <div className={"textEditor"}>
-                            <textarea onChange={this.textChanged} onMouseDown={() => {
+                            <textarea
+                                ref={this.textEditor}
+                                onChange={this.textChanged} onMouseDown={() => {
                                 this.nodeEventDispatcher.dispatch(new NodeSelected(this.props.nodeView.node.id));
                             }} className={"alexander "} value={this.props.nodeView.node.text}
-                                      style={{width: width + "px", height: height + "px", resize: "none"}}></textarea>
+                                style={{width: (width - 10) + "px", height: (height - 6) + "px", resize: "none"}}></textarea>
                 </div>
             </foreignObject>
         ) : null;

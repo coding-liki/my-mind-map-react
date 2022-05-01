@@ -1,4 +1,4 @@
-import React, {MouseEvent, WheelEvent} from 'react';
+import React, {MouseEvent, RefObject, WheelEvent} from 'react';
 import Page from "../Lib/Page/Page";
 import {EDITOR_PAGE} from "../../Lib/Constants/Pages";
 import {Camera} from "../../Lib/Svg/Editor/Camera";
@@ -15,7 +15,7 @@ import {
 import {EventDispatcher} from "../../Lib/EventDispatcher";
 import {NODE, PAGE} from "../../Lib/Constants/EventDispatcherNames";
 import MindMap from "../../Lib/Models/MindMap";
-import {KeyPressHandler} from "../../Lib/KeyPressHandler";
+import {Handler, KeyPressHandler} from "../../Lib/KeyPressHandler";
 import Node from "../Node/Node";
 import {Node as NodeModel} from "../../Lib/Models/Node";
 import Link from "../Node/Link";
@@ -39,7 +39,7 @@ class EditorPage extends React.Component<Props, State> {
     lastMousePosition: Vector = new Vector();
     eventDispatcher: EventDispatcher = EventDispatcher.instance(PAGE);
     nodeEventDispatcher: EventDispatcher = EventDispatcher.instance(NODE);
-    svgNode;
+    svgNode: RefObject<SVGSVGElement>;
     state: State;
     selectedNodeId: number = 0;
 
@@ -61,12 +61,28 @@ class EditorPage extends React.Component<Props, State> {
             camera: new Camera(new Vector(0, 0, -1), new ViewPort(new Vector(0, 0), new Vector(0, 0))),
             mindMap: this.props.mindMap
         }
+
+        let handler = new Handler(["ShiftLeft","Equal"], () => {
+            this.addNewNode();
+        });
+        this.keyboardHandler.map.push(handler)
+        handler = new Handler(["ShiftRight","Equal"], () =>{
+            this.addNewNode();
+        });
+        this.keyboardHandler.map.push(handler)
+
     }
 
+    addNewNode = () => {
+        if(this.selectedNodeId > 0){
+            this.state.mindMap.addChildNode(this.nodes[this.selectedNodeId])
+            this.updateNodes();
+            this.setState(this.state);
+
+        }
+    }
     componentDidMount() {
-        this.state.mindMap.nodes.forEach((node: NodeModel) => {
-            this.nodes[node.id] = node;
-        });
+        this.updateNodes();
 
         window.onresize = () => {
             this.onWindowResize();
@@ -105,6 +121,12 @@ class EditorPage extends React.Component<Props, State> {
         this.onWindowResize();
 
         this.keyboardHandler.subscribe();
+    }
+
+    private updateNodes() {
+        this.state.mindMap.nodes.forEach((node: NodeModel) => {
+            this.nodes[node.id] = node;
+        });
     }
 
     onWindowResize = () => {
@@ -147,7 +169,7 @@ class EditorPage extends React.Component<Props, State> {
                         );
 
                         this.setState(this.state);
-                    } else if (this.selectedNodeId > 0) {
+                    } else if (this.selectedNodeId > 0 && !this.state.editingNodeView) {
                         let node = this.nodes[this.selectedNodeId];
                         this.state.camera.move(new Vector(
                             this.mouseEvent.clientX - this.lastMouseEvent.clientX,
@@ -161,12 +183,13 @@ class EditorPage extends React.Component<Props, State> {
     }
 
     zoom = (event: WheelEvent) => {
-        let delta = event.deltaY * (-0.0015);
-        this.state.camera.zoom(this.mousePosition, delta);
+        if(this.keyboardHandler.pressed('ShiftLeft') || this.keyboardHandler.pressed('ShiftRight')) {
+            let delta = event.deltaY * (-0.0015);
+            this.state.camera.zoom(this.mousePosition, delta);
 
-        this.updateMousePosition()
-        this.setState(this.state);
-
+            this.updateMousePosition()
+            this.setState(this.state);
+        }
     }
 
     updateMousePosition() {
@@ -192,7 +215,7 @@ class EditorPage extends React.Component<Props, State> {
 
     renderLinks() {
         return this.state.mindMap.nodes.map((value: NodeModel) => {
-            if (value) {
+            if (value.parentLinkNode) {
                 return (
                     <Link key={value.id} node={value}/>
                 )

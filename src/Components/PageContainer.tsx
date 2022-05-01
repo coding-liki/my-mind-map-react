@@ -11,13 +11,31 @@ function AllPages() {
         "\nс кучей вещей");
     let secondNode = RandomGenerator.generateNode(100,100,2, 'Вторая нода');
 
+    let thirdNode = RandomGenerator.generateNode(200,200,3, 'Третья нода');
+
+    let fourthNode = RandomGenerator.generateNode(100,300,4, 'Четвёртая нода');
+
+    let fifthNode = RandomGenerator.generateNode(0,200,5, 'Пятая нода');
+
     secondNode.parentLinkNode = firstNode;
     secondNode.parentNode = firstNode;
+
+    thirdNode.parentLinkNode = secondNode;
+    thirdNode.parentNode = firstNode;
+
+    fourthNode.parentLinkNode = thirdNode;
+    fourthNode.parentNode = firstNode;
+
+    fifthNode.parentLinkNode = fourthNode;
+    fifthNode.parentNode = firstNode;
 
     return (<Fragment>
         <EditorPage active={true} mindMap={new MindMap(1, "First Mind Map", [
             firstNode,
-            secondNode
+            secondNode,
+            thirdNode,
+            fourthNode,
+            fifthNode
         ])}/>
         <ListPage />
     </Fragment>);

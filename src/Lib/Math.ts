@@ -5,6 +5,7 @@ export class Vector {
     static sinValues: {[key: string]: number} = {};
     static cosValues: {[key: string]: number} = {};
     static acosValues: {[key: string]: number} = {};
+    static atanValues: {[key: string]: number} = {};
 
     constructor(x: number = 0, y: number = 0, z: number = 0) {
         this.x = x;
@@ -109,6 +110,13 @@ export class Vector {
             Vector.acosValues[value] = Math.acos(value);
         }
         return Vector.acosValues[value];
+    }
+
+    static atan(value: number): number {
+        if (!Vector.atanValues[value]) {
+            Vector.atanValues[value] = Math.atan(value);
+        }
+        return Vector.atanValues[value];
     }
 }
 

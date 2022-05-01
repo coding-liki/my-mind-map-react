@@ -13,7 +13,7 @@ export class Handler {
 }
 
 export class KeyPressHandler {
-    map = [];
+    map: Handler[] = [];
     // @ts-ignore
     keyStates: boolean[string] = {};
 
