@@ -31,7 +31,6 @@ export class NodeView {
     }
 
     regeneratePath(): NodeView {
-        console.log('regen', this.node.id);
         if (this.nodeElement && this.nodeElement.current) {
             let textElement: SVGGraphicsElement|null = this.nodeElement.current.querySelector('.text');
             if(textElement) {

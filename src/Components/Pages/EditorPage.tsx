@@ -4,7 +4,14 @@ import {EDITOR_PAGE} from "../../Lib/Constants/Pages";
 import {Camera} from "../../Lib/Svg/Editor/Camera";
 import {Vector} from "../../Lib/Math";
 import {ViewPort} from "../../Lib/Svg/Editor/ViewPort";
-import {NODE_SELECTED, NodeSelected, PAGE_ENABLED, PageEnabled} from "../../Lib/Constants/Events";
+import {
+    NODE_SELECTED,
+    NODE_START_EDIT,
+    NodeSelected,
+    NodeStartEdit,
+    PAGE_ENABLED,
+    PageEnabled
+} from "../../Lib/Constants/Events";
 import {EventDispatcher} from "../../Lib/EventDispatcher";
 import {NODE, PAGE} from "../../Lib/Constants/EventDispatcherNames";
 import MindMap from "../../Lib/Models/MindMap";
@@ -12,6 +19,8 @@ import {KeyPressHandler} from "../../Lib/KeyPressHandler";
 import Node from "../Node/Node";
 import {Node as NodeModel} from "../../Lib/Models/Node";
 import Link from "../Node/Link";
+import TextEditor from "../Node/TextEditor";
+import {NodeView} from "../../Lib/Views/NodeView";
 
 type Props = {
     active?: boolean;
@@ -20,7 +29,8 @@ type Props = {
 
 type State = {
     camera: Camera,
-    mindMap: MindMap
+    mindMap: MindMap,
+    editingNodeView?: NodeView;
 }
 
 class EditorPage extends React.Component<Props, State> {
@@ -68,15 +78,29 @@ class EditorPage extends React.Component<Props, State> {
         })
 
         this.nodeEventDispatcher.subscribe(NODE_SELECTED, (event: NodeSelected) => {
-            if(event.nodeId !== 0) {
+            if (event.nodeId !== 0) {
                 let nodeIndex = this.state.mindMap.nodes.indexOf(this.nodes[event.nodeId]);
                 let node = this.state.mindMap.nodes[nodeIndex];
                 this.state.mindMap.nodes.splice(nodeIndex, 1)
                 this.state.mindMap.nodes.push(node);
                 this.setState(this.state);
             }
+
+            if(event.nodeId !== this.state.editingNodeView?.node.id){
+                this.setState({editingNodeView: undefined})
+            }
+
             this.selectedNodeId = event.nodeId;
         });
+
+        this.nodeEventDispatcher.subscribe(NODE_START_EDIT, (event: NodeStartEdit) => {
+            if (this.state.editingNodeView === event.nodeView) {
+                this.setState({editingNodeView: undefined})
+            } else {
+                this.setState({editingNodeView: event.nodeView})
+            }
+        });
+
 
         this.onWindowResize();
 
@@ -168,7 +192,7 @@ class EditorPage extends React.Component<Props, State> {
 
     renderLinks() {
         return this.state.mindMap.nodes.map((value: NodeModel) => {
-            if(value) {
+            if (value) {
                 return (
                     <Link key={value.id} node={value}/>
                 )
@@ -180,7 +204,7 @@ class EditorPage extends React.Component<Props, State> {
 
     renderNodes() {
         return this.state.mindMap.nodes.map((value: NodeModel) => {
-            if(value) {
+            if (value) {
                 return (
                     <Node key={value.id} node={value}/>
                 )
@@ -199,11 +223,17 @@ class EditorPage extends React.Component<Props, State> {
                         ref={this.svgNode}
                         onMouseMove={this.mouseMove}
                         onWheel={this.zoom}
-                        onMouseDown={() => {
-                            this.mouseState = EditorPage.MOUSE_STATE_DOWN
-                            if (this.selectedNodeId !== 0) {
+                        // onClick={()=>{
+                        //     if (this.selectedNodeId !== 0) {
+                        //         this.nodeEventDispatcher.dispatch(new NodeSelected(0));
+                        //     }
+                        // }}
+                        onMouseDown={(event: MouseEvent<SVGSVGElement|HTMLElement>) => {
+                            if (this.svgNode.current === event.target) {
                                 this.nodeEventDispatcher.dispatch(new NodeSelected(0));
                             }
+                            this.mouseState = EditorPage.MOUSE_STATE_DOWN
+
                         }}
                         onMouseUp={() => {
                             this.mouseState = EditorPage.MOUSE_STATE_UP;
@@ -228,6 +258,11 @@ class EditorPage extends React.Component<Props, State> {
                         {/*    </div>*/}
                         {/*    </foreignObject>*/}
                         {/*{/if}*/}
+                        {
+                            this.state.editingNodeView &&
+                            <TextEditor nodeView={this.state.editingNodeView}></TextEditor>
+                        }
+
                     </svg>
                 </Page>
             </div>

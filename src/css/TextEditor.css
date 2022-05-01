@@ -1,0 +1,12 @@
+.textEditor textarea{
+    font-size: 20px;
+    text-align: center;
+    resize: none;
+    line-height: 1em;
+    background: transparent;
+    border: none;
+}
+.textEditor textarea:focus-visible {
+    border: none;
+    outline: none;
+}

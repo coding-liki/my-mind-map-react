@@ -2,7 +2,7 @@ import React from "react";
 import {Node as NodeModel} from "../../Lib/Models/Node"
 import {NodeView} from "../../Lib/Views/NodeView";
 import '../../css/Node.css';
-import {NODE_SELECTED, NodeSelected, NodeStartEdit} from "../../Lib/Constants/Events";
+import {NODE_SELECTED, NODE_UPDATE_TEXT, NodeSelected, NodeStartEdit, NodeUpdateText} from "../../Lib/Constants/Events";
 import {EventDispatcher} from "../../Lib/EventDispatcher";
 import {NODE} from "../../Lib/Constants/EventDispatcherNames";
 
@@ -25,8 +25,6 @@ class Node extends React.Component<Props, State> {
         this.state = {
             nodeView: nodeView
         };
-
-
     }
 
     componentDidMount() {
@@ -36,6 +34,13 @@ class Node extends React.Component<Props, State> {
             this.setState({nodeView: nodeView});
         })
 
+        this.eventDispatcher.subscribe(NODE_UPDATE_TEXT, (event: NodeUpdateText) => {
+            if(this.state.nodeView.node.id === event.nodeId) {
+                this.state.nodeView.refillText();
+                this.setState(this.state);
+            }
+        })
+
         this.state.nodeView.refillText();
         this.setState(this.state);
     }
@@ -43,7 +48,10 @@ class Node extends React.Component<Props, State> {
     render() {
         return (
             <g className="node" ref={this.state.nodeView.nodeElement}
-               transform={"translate(" + this.state.nodeView.node.position.x + "," + this.state.nodeView.node.position.y + ")"}>
+               transform={"translate(" + this.state.nodeView.node.position.x + "," + this.state.nodeView.node.position.y + ")"}
+               onDoubleClick={() => {
+                   this.eventDispatcher.dispatch(new NodeStartEdit(this.state.nodeView));
+               }}>
 
                 <g className="colorWhite">
                     <path id={"border" + this.state.nodeView.node.id}
@@ -53,11 +61,9 @@ class Node extends React.Component<Props, State> {
                           strokeWidth={this.state.nodeView.selected ? 4 : 2}
                     />
                 </g>
-
                 <g>
                     {
                         this.state.nodeView.nodePath &&
-
                         <path
                             stroke="black"
                             fill="white" strokeWidth="2"
@@ -67,7 +73,6 @@ class Node extends React.Component<Props, State> {
                 </g>
                 <g className="text"
                    transform={"translate(0, " + (-this.state.nodeView.nodeTextHeight-6) / 2 + ")"}
-
                 >
                     <text className="unselectable alexander" textAnchor="middle" fontSize="20">
                     </text>
@@ -76,14 +81,12 @@ class Node extends React.Component<Props, State> {
                     <use xlinkHref={"#border"+this.state.nodeView.node.id} fill="transparent"
                          onMouseDown={(event) => {
                              event.preventDefault();
+
                              setTimeout(()=> {
                                  this.eventDispatcher.dispatch(new NodeSelected(this.state.nodeView.node.id));
                              });
                          }}
-                         onDoubleClick={(event) => {
-                             event.preventDefault();
-                             this.eventDispatcher.dispatch(new NodeStartEdit(this.state.nodeView));
-                         }}/>
+                         />
                 </g>
 
             </g>
