@@ -5,6 +5,9 @@ import {NodeView} from "../../Lib/Views/NodeView";
 import {Vector} from "../../Lib/Math";
 import {ReactComponent as Arrow} from '../../img/arrow.svg';
 import {LinkType} from "../../Lib/Models/Link";
+import {EventDispatcher} from "../../Lib/EventDispatcher";
+import {NODE} from "../../Lib/Constants/EventDispatcherNames";
+import {NodeSelected} from "../../Lib/Constants/Events";
 
 type Props = {
     node: Node;
@@ -17,6 +20,7 @@ type State = {
 
 class Link extends React.Component<Props, State> {
     arrow: RefObject<SVGSVGElement>
+    nodeEventDispatcher: EventDispatcher = EventDispatcher.instance(NODE);
 
 
     constructor(props: Props) {
@@ -33,7 +37,6 @@ class Link extends React.Component<Props, State> {
 
     componentDidMount() {
         this.calculateArrowWidth();
-
     }
 
     render() {
@@ -68,7 +71,9 @@ class Link extends React.Component<Props, State> {
 
             }
             return (
-                <g>
+                <g onMouseDown={() => {
+                    this.nodeEventDispatcher.dispatch(new NodeSelected(0));
+                }}>
                     {this.renderLines()}
                     <g ref={this.arrow} transform={
                         transform

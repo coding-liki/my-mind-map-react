@@ -28,21 +28,29 @@ class Node extends React.Component<Props, State> {
     }
 
     componentDidMount() {
-        this.eventDispatcher.subscribe(NODE_SELECTED, (event: NodeSelected) => {
-            let nodeView = this.state.nodeView;
-            nodeView.selected = this.state.nodeView.node.id === event.nodeId;
-            this.setState({nodeView: nodeView});
-        })
+        this.eventDispatcher.subscribe(NODE_SELECTED, this.nodeSelected);
 
-        this.eventDispatcher.subscribe(NODE_UPDATE_TEXT, (event: NodeUpdateText) => {
-            if(this.state.nodeView.node.id === event.nodeId) {
-                this.state.nodeView.refillText();
-                this.setState(this.state);
-            }
-        })
+        this.eventDispatcher.subscribe(NODE_UPDATE_TEXT, this.nodeUpdateText);
 
         this.state.nodeView.refillText();
         this.setState(this.state);
+    }
+
+    nodeSelected = (event: NodeSelected) => {
+        let nodeView = this.state.nodeView;
+        nodeView.selected = this.state.nodeView.node.id === event.nodeId;
+        this.setState({nodeView: nodeView});
+    }
+    nodeUpdateText = (event: NodeUpdateText) => {
+        if (this.state.nodeView.node.id === event.nodeId) {
+            this.state.nodeView.refillText();
+            this.setState(this.state);
+        }
+    }
+
+    componentWillUnmount() {
+        this.eventDispatcher.unsubscribe(NODE_UPDATE_TEXT, this.nodeUpdateText);
+        this.eventDispatcher.unsubscribe(NODE_SELECTED, this.nodeSelected);
     }
 
     render() {
@@ -72,21 +80,19 @@ class Node extends React.Component<Props, State> {
                     }
                 </g>
                 <g className="text"
-                   transform={"translate(0, " + (-this.state.nodeView.nodeTextHeight-6) / 2 + ")"}
+                   transform={"translate(0, " + (-this.state.nodeView.nodeTextHeight - 6) / 2 + ")"}
                 >
                     <text className="unselectable alexander" textAnchor="middle" fontSize="20">
                     </text>
                 </g>
                 <g className="colorTransparent">
-                    <use xlinkHref={"#border"+this.state.nodeView.node.id} fill="transparent"
+                    <use xlinkHref={"#border" + this.state.nodeView.node.id} fill="transparent"
                          onMouseDown={(event) => {
                              event.preventDefault();
 
-                             setTimeout(()=> {
-                                 this.eventDispatcher.dispatch(new NodeSelected(this.state.nodeView.node.id));
-                             });
+                             this.eventDispatcher.dispatch(new NodeSelected(this.state.nodeView.node.id));
                          }}
-                         />
+                    />
                 </g>
 
             </g>

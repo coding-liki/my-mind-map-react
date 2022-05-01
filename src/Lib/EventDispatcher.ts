@@ -23,6 +23,20 @@ export class EventDispatcher {
         }
     }
 
+    unsubscribe(name: string,handlerToDelete: eventCallback){
+        let newListeners: eventCallback[] = [];
+
+        if(this.eventListeners[name]){
+            this.eventListeners[name].forEach((handler: eventCallback) => {
+                if(handlerToDelete !== handler){
+                    newListeners.push(handler);
+                }
+            })
+            this.eventListeners[name] = newListeners;
+        }
+
+    }
+
 
     static instance(name: string = "main"): EventDispatcher {
         if (!this.dispatchers[name]) {

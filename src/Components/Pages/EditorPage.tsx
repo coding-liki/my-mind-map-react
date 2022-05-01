@@ -61,66 +61,79 @@ class EditorPage extends React.Component<Props, State> {
             camera: new Camera(new Vector(0, 0, -1), new ViewPort(new Vector(0, 0), new Vector(0, 0))),
             mindMap: this.props.mindMap
         }
-
-        let handler = new Handler(["ShiftLeft","Equal"], () => {
-            this.addNewNode();
-        });
-        this.keyboardHandler.map.push(handler)
-        handler = new Handler(["ShiftRight","Equal"], () =>{
-            this.addNewNode();
-        });
-        this.keyboardHandler.map.push(handler)
-
     }
 
     addNewNode = () => {
-        if(this.selectedNodeId > 0){
+        if (this.selectedNodeId > 0) {
             this.state.mindMap.addChildNode(this.nodes[this.selectedNodeId])
             this.updateNodes();
             this.setState(this.state);
 
         }
     }
+
     componentDidMount() {
+        let handler = new Handler(["ShiftLeft", "Equal"], () => {
+            this.addNewNode();
+        });
+        this.keyboardHandler.map.push(handler)
+        handler = new Handler(["ShiftRight", "Equal"], () => {
+            this.addNewNode();
+        });
+        this.keyboardHandler.map.push(handler)
+
         this.updateNodes();
 
         window.onresize = () => {
             this.onWindowResize();
         }
-        this.eventDispatcher.subscribe(PAGE_ENABLED, (event: PageEnabled) => {
-            if (event.pageName === EDITOR_PAGE) {
-                this.onWindowResize();
-            }
-        })
+        this.eventDispatcher.subscribe(PAGE_ENABLED, this.pageEnabled)
 
-        this.nodeEventDispatcher.subscribe(NODE_SELECTED, (event: NodeSelected) => {
-            if (event.nodeId !== 0) {
-                let nodeIndex = this.state.mindMap.nodes.indexOf(this.nodes[event.nodeId]);
-                let node = this.state.mindMap.nodes[nodeIndex];
-                this.state.mindMap.nodes.splice(nodeIndex, 1)
-                this.state.mindMap.nodes.push(node);
-                this.setState(this.state);
-            }
+        this.nodeEventDispatcher.subscribe(NODE_SELECTED, this.nodeSelected);
 
-            if(event.nodeId !== this.state.editingNodeView?.node.id){
-                this.setState({editingNodeView: undefined})
-            }
-
-            this.selectedNodeId = event.nodeId;
-        });
-
-        this.nodeEventDispatcher.subscribe(NODE_START_EDIT, (event: NodeStartEdit) => {
-            if (this.state.editingNodeView === event.nodeView) {
-                this.setState({editingNodeView: undefined})
-            } else {
-                this.setState({editingNodeView: event.nodeView})
-            }
-        });
+        this.nodeEventDispatcher.subscribe(NODE_START_EDIT, this.nodeStartEdit);
 
 
         this.onWindowResize();
 
         this.keyboardHandler.subscribe();
+    }
+    componentWillUnmount() {
+        this.eventDispatcher.unsubscribe(PAGE_ENABLED, this.pageEnabled)
+
+        this.nodeEventDispatcher.unsubscribe(NODE_SELECTED, this.nodeSelected);
+
+        this.nodeEventDispatcher.unsubscribe(NODE_START_EDIT, this.nodeStartEdit);
+    }
+
+    private nodeStartEdit = (event: NodeStartEdit) => {
+        if (this.state.editingNodeView === event.nodeView) {
+            this.setState({editingNodeView: undefined})
+        } else {
+            this.setState({editingNodeView: event.nodeView})
+        }
+    }
+
+    nodeSelected = (event: NodeSelected) => {
+        if (event.nodeId !== 0) {
+            let nodeIndex = this.state.mindMap.nodes.indexOf(this.nodes[event.nodeId]);
+            let node = this.state.mindMap.nodes[nodeIndex];
+            this.state.mindMap.nodes.splice(nodeIndex, 1)
+            this.state.mindMap.nodes.push(node);
+            this.setState(this.state);
+        }
+
+        if (event.nodeId !== this.state.editingNodeView?.node.id) {
+            this.setState({editingNodeView: undefined})
+        }
+
+        this.selectedNodeId = event.nodeId;
+    }
+
+    pageEnabled = (event: PageEnabled) => {
+        if (event.pageName === EDITOR_PAGE) {
+            this.onWindowResize();
+        }
     }
 
     private updateNodes() {
@@ -183,7 +196,7 @@ class EditorPage extends React.Component<Props, State> {
     }
 
     zoom = (event: WheelEvent) => {
-        if(this.keyboardHandler.pressed('ShiftLeft') || this.keyboardHandler.pressed('ShiftRight')) {
+        if (this.keyboardHandler.pressed('ShiftLeft') || this.keyboardHandler.pressed('ShiftRight')) {
             let delta = event.deltaY * (-0.0015);
             this.state.camera.zoom(this.mousePosition, delta);
 
@@ -215,7 +228,7 @@ class EditorPage extends React.Component<Props, State> {
 
     renderLinks() {
         return this.state.mindMap.nodes.map((value: NodeModel) => {
-            if (value.parentLinkNode) {
+            if (value && value.parentLinkNode) {
                 return (
                     <Link key={value.id} node={value}/>
                 )
@@ -246,12 +259,7 @@ class EditorPage extends React.Component<Props, State> {
                         ref={this.svgNode}
                         onMouseMove={this.mouseMove}
                         onWheel={this.zoom}
-                        // onClick={()=>{
-                        //     if (this.selectedNodeId !== 0) {
-                        //         this.nodeEventDispatcher.dispatch(new NodeSelected(0));
-                        //     }
-                        // }}
-                        onMouseDown={(event: MouseEvent<SVGSVGElement|HTMLElement>) => {
+                        onMouseDown={(event: MouseEvent<SVGSVGElement | HTMLElement>) => {
                             if (this.svgNode.current === event.target) {
                                 this.nodeEventDispatcher.dispatch(new NodeSelected(0));
                             }
@@ -269,18 +277,7 @@ class EditorPage extends React.Component<Props, State> {
                         {this.renderLinks()}
 
                         {this.renderNodes()}
-                        {/*{#each map.nodes as node }*/}
-                        {/*<NodeNew nodeView={node}/>*/}
-                        {/*{/each}*/}
-                        {/*{#if  stateProcessor.editedNodeView}*/}
-                        {/*    <foreignObject transform="translate({-( stateProcessor.editedNodeView.nodeTextWidth*1.2)/2+ stateProcessor.editedNodeView.node.position.x}, { stateProcessor.editedNodeView.node.position.y})"*/}
-                        {/*    width="{ stateProcessor.editedNodeView.nodeTextWidth*1.2+2}px" height="{ stateProcessor.editedNodeView.nodeTextHeight+4}px">*/}
-                        {/*    <div xmlns="http://www.w3.org/1999/xhtml">*/}
-                        {/*    <NodeEditor bind:value={ stateProcessor.editedNodeView.node.text} nodeId="{ stateProcessor.editedNodeView.node.id}" hidden={false}*/}
-                        {/*    width="{ stateProcessor.editedNodeView.nodeTextWidth*1.2}" height="{ stateProcessor.editedNodeView.nodeTextHeight+4}"/>*/}
-                        {/*    </div>*/}
-                        {/*    </foreignObject>*/}
-                        {/*{/if}*/}
+
                         {
                             this.state.editingNodeView &&
                             <TextEditor nodeView={this.state.editingNodeView}></TextEditor>

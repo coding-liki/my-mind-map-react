@@ -14,8 +14,7 @@ export class Handler {
 
 export class KeyPressHandler {
     map: Handler[] = [];
-    // @ts-ignore
-    keyStates: boolean[string] = {};
+    keyStates: {[key: string]: boolean} = {};
 
     subscribed: boolean = false;
     processDownEvent = (event: KeyboardEvent) => {
@@ -43,6 +42,7 @@ export class KeyPressHandler {
 
     processPress(event: KeyboardEvent) {
         let keysUp = Object.keys(this.keyStates).filter((state: string) => this.keyStates[state]).sort();
+        // console.log(keysUp);
         let handlers = this.map.filter((handler: Handler) => handler.keys.sort().toString() === keysUp.toString());
 
         handlers.forEach((handler: Handler) => {
