@@ -7,7 +7,7 @@ import {ReactComponent as Arrow} from '../../img/arrow.svg';
 import {LinkType} from "../../Lib/Models/Link";
 import {EventDispatcher} from "../../Lib/EventDispatcher";
 import {NODE} from "../../Lib/Constants/EventDispatcherNames";
-import {NodeSelected} from "../../Lib/Constants/Events";
+import {NODE_LINK_UPDATED, NodeLinkUpdated, NodeSelected} from "../../Lib/Constants/Events";
 
 type Props = {
     node: Node;
@@ -21,7 +21,6 @@ type State = {
 class Link extends React.Component<Props, State> {
     arrow: RefObject<SVGSVGElement>
     nodeEventDispatcher: EventDispatcher = EventDispatcher.instance(NODE);
-
 
     constructor(props: Props) {
         super(props);
@@ -37,8 +36,19 @@ class Link extends React.Component<Props, State> {
 
     componentDidMount() {
         this.calculateArrowWidth();
+
+        this.nodeEventDispatcher.subscribe(NODE_LINK_UPDATED, this.nodeLinkUpdated);
     }
 
+    componentWillUnmount() {
+        this.nodeEventDispatcher.unsubscribe(NODE_LINK_UPDATED, this.nodeLinkUpdated);
+    }
+    nodeLinkUpdated = (event: NodeLinkUpdated) => {
+        if(this.state.nodeView.node.id === event.nodeId) {
+            this.state.nodeView.updateLink();
+            this.setState(this.state);
+        }
+    }
     render() {
         if (this.state.nodeView.link) {
             if (this.state.arrowWidth === null) {
@@ -48,7 +58,6 @@ class Link extends React.Component<Props, State> {
 
             let arrowRotationRad = Vector.atan(arrowRotationVector.y / arrowRotationVector.x);
             if (arrowRotationVector.x < 0) {
-                // console.log("меньше")
                 arrowRotationRad += Math.PI;
             }
 
@@ -73,7 +82,8 @@ class Link extends React.Component<Props, State> {
             return (
                 <g onMouseDown={() => {
                     this.nodeEventDispatcher.dispatch(new NodeSelected(0));
-                }}>
+                }}
+                >
                     {this.renderLines()}
                     <g ref={this.arrow} transform={
                         transform
@@ -191,17 +201,16 @@ class Link extends React.Component<Props, State> {
         }
 
         return undefined;
-
     }
 
     private calculateArrowWidth() {
         if (this.arrow.current && this.state.nodeView.link) {
-
             let boundaries = this.arrow.current.getBoundingClientRect();
 
-            this.setState({arrowWidth: (boundaries.width) + 1.25});//14.64*2;
+            this.setState({arrowWidth: (boundaries.width) + 1.25});
         }
     }
+
 }
 
 export default Link;

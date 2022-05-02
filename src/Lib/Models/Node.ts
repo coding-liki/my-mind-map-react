@@ -28,7 +28,7 @@ export class Node implements WithPosition{
         let type: LinkType =  LinkType.first
         let parent = this.parentLinkNode;
         while(parent !== this.parentNode){
-            parent = parent?.parentLinkNode;
+            parent = parent?.parentNode;
             type++;
         }
         return type;

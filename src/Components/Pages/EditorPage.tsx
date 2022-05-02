@@ -6,7 +6,7 @@ import {Vector} from "../../Lib/Math";
 import {ViewPort} from "../../Lib/Svg/Editor/ViewPort";
 import {
     NODE_SELECTED,
-    NODE_START_EDIT,
+    NODE_START_EDIT, NodeLinkUpdated,
     NodeSelected,
     NodeStartEdit,
     PAGE_ENABLED,
@@ -21,6 +21,7 @@ import {Node as NodeModel} from "../../Lib/Models/Node";
 import Link from "../Node/Link";
 import TextEditor from "../Node/TextEditor";
 import {NodeView} from "../../Lib/Views/NodeView";
+import {LinkType} from "../../Lib/Models/Link";
 
 type Props = {
     active?: boolean;
@@ -46,6 +47,7 @@ class EditorPage extends React.Component<Props, State> {
     nodes: { [key: number]: NodeModel } = {};
     mouseEvent?: MouseEvent;
     lastMouseEvent?: MouseEvent;
+
     static readonly MOUSE_STATE_DOWN: string = 'down';
     static readonly MOUSE_STATE_UP: string = 'up';
 
@@ -82,27 +84,88 @@ class EditorPage extends React.Component<Props, State> {
         });
         this.keyboardHandler.map.push(handler)
 
+
+        handler = new Handler(["ShiftRight", "KeyP"], () => {
+            this.incrementLink();
+        });
+
+        this.keyboardHandler.map.push(handler)
+
+
+        handler = new Handler(["ShiftRight", "KeyL"], () => {
+            this.decrementLink();
+        });
+
+        this.keyboardHandler.map.push(handler)
         this.updateNodes();
 
         window.onresize = () => {
             this.onWindowResize();
         }
+
         this.eventDispatcher.subscribe(PAGE_ENABLED, this.pageEnabled)
-
         this.nodeEventDispatcher.subscribe(NODE_SELECTED, this.nodeSelected);
-
         this.nodeEventDispatcher.subscribe(NODE_START_EDIT, this.nodeStartEdit);
-
 
         this.onWindowResize();
 
         this.keyboardHandler.subscribe();
     }
+    private incrementLink() {
+        if(this.selectedNodeId > 0) {
+            let selectedNode = this.nodes[this.selectedNodeId]
+            if (selectedNode.parentNode ) {
+                switch (selectedNode.getLinkType()) {
+                    case LinkType.fourth:
+                        selectedNode.parentNode = selectedNode.parentLinkNode;
+                        break;
+                    default:
+                        if (selectedNode.parentNode.parentNode) {
+                            selectedNode.parentNode = selectedNode.parentNode.parentNode;
+                        } else {
+                            selectedNode.parentNode = selectedNode.parentLinkNode;
+                        }
+                }
+
+                this.nodeEventDispatcher.dispatch(new NodeLinkUpdated(this.selectedNodeId));
+            }
+        }
+
+    }
+
+    private decrementLink() {
+        if(this.selectedNodeId > 0) {
+            let selectedNode = this.nodes[this.selectedNodeId]
+            if (selectedNode.parentNode ) {
+                switch (selectedNode.getLinkType()) {
+                    case LinkType.first:
+                        if (selectedNode.parentLinkNode?.parentNode?.parentNode?.parentNode) {
+                            selectedNode.parentNode = selectedNode.parentLinkNode.parentNode.parentNode.parentNode;
+                        } else if (selectedNode.parentLinkNode?.parentNode?.parentNode) {
+                            selectedNode.parentNode = selectedNode.parentLinkNode.parentNode.parentNode;
+                        } else if (selectedNode.parentLinkNode?.parentNode) {
+                            selectedNode.parentNode = selectedNode.parentLinkNode.parentNode;
+                        }
+                        break;
+                    case LinkType.second:
+                        selectedNode.parentNode = selectedNode.parentLinkNode;
+                        break;
+                    case LinkType.third:
+                        selectedNode.parentNode = selectedNode.parentLinkNode?.parentNode;
+                        break;
+                    case LinkType.fourth:
+                        selectedNode.parentNode = selectedNode.parentLinkNode?.parentNode?.parentNode;
+                        break;
+                }
+
+                this.nodeEventDispatcher.dispatch(new NodeLinkUpdated(this.selectedNodeId));
+            }
+        }
+    }
+
     componentWillUnmount() {
         this.eventDispatcher.unsubscribe(PAGE_ENABLED, this.pageEnabled)
-
         this.nodeEventDispatcher.unsubscribe(NODE_SELECTED, this.nodeSelected);
-
         this.nodeEventDispatcher.unsubscribe(NODE_START_EDIT, this.nodeStartEdit);
     }
 

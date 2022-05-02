@@ -82,6 +82,7 @@ export class PageUpdated implements Event {
 export const NODE_UPDATE_TEXT = 'nodeUpdateText';
 export const NODE_START_EDIT = 'nodeStartEdit';
 export const NODE_SELECTED = 'nodeSelected';
+export const NODE_LINK_UPDATED = 'nodeLinkUpdated';
 
 export class NodeUpdateText implements Event {
     name: string = NODE_UPDATE_TEXT;
@@ -103,6 +104,15 @@ export class NodeStartEdit implements Event {
 
 export class NodeSelected implements Event {
     name: string = NODE_SELECTED;
+    nodeId: number;
+
+    constructor(nodeId: number) {
+        this.nodeId = nodeId;
+    }
+}
+
+export class NodeLinkUpdated implements Event {
+    name: string = NODE_LINK_UPDATED;
     nodeId: number;
 
     constructor(nodeId: number) {
