@@ -10,7 +10,7 @@ import {NODE} from "../../Lib/Constants/EventDispatcherNames";
 import {NODE_LINK_UPDATED, NodeLinkUpdated, NodeSelected} from "../../Lib/Constants/Events";
 
 type Props = {
-    node: Node;
+    nodeView: NodeView;
 }
 
 type State = {
@@ -26,34 +26,43 @@ class Link extends React.Component<Props, State> {
         super(props);
         this.arrow = React.createRef<SVGSVGElement>();
 
-        let nodeView = new NodeView(this.props.node);
-        nodeView.updateLink();
         this.state = {
-            nodeView: nodeView,
+            nodeView: this.props.nodeView,
             arrowWidth: null
         }
     }
 
     componentDidMount() {
-        this.calculateArrowWidth();
+        this.state.nodeView.updateLink()
 
+        // if (this.state.arrowWidth === null) {
+        //     this.calculateArrowWidth();
+        // }
         this.nodeEventDispatcher.subscribe(NODE_LINK_UPDATED, this.nodeLinkUpdated);
+        this.setState({arrowWidth: null})
+    }
+
+    componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any) {
+        if (this.state.arrowWidth === null) {
+            this.calculateArrowWidth();
+        }
+
     }
 
     componentWillUnmount() {
         this.nodeEventDispatcher.unsubscribe(NODE_LINK_UPDATED, this.nodeLinkUpdated);
     }
+
     nodeLinkUpdated = (event: NodeLinkUpdated) => {
-        if(this.state.nodeView.node.id === event.nodeId) {
+        if (this.state.nodeView.node.id === event.nodeId) {
             this.state.nodeView.updateLink();
             this.setState(this.state);
         }
     }
+
     render() {
-        if (this.state.nodeView.link) {
-            if (this.state.arrowWidth === null) {
-                this.calculateArrowWidth();
-            }
+        if (this.state.nodeView && this.state.nodeView.link) {
+
             let arrowRotationVector = this.state.nodeView.link.nodeTo.position.clone().sub(this.state.nodeView.link.nodeFrom.position);
 
             let arrowRotationRad = Vector.atan(arrowRotationVector.y / arrowRotationVector.x);
@@ -63,18 +72,21 @@ class Link extends React.Component<Props, State> {
 
             let arrowRotation = arrowRotationRad * 180 / Math.PI - 90;
 
-            let arrowPosition = this.state.nodeView.link.nodeFrom.position.clone().add(this.state.nodeView.link.nodeTo.position).div(2)
+            let linePosition = this.getArrowPosition(arrowRotationRad + Math.PI);
 
+            let transform = "";
+            if (linePosition) {
+                let arrowPosition = linePosition.clone();
 
-            if (this.state.arrowWidth !== null) {
-                let addVector = new Vector(-this.state.arrowWidth / 2 + 0.5, 0);
+                if (this.state.arrowWidth !== null) {
+                    let addVector = new Vector(-this.state.arrowWidth / 2 + 0.5, 0);
 
-                addVector.rotate(new Vector(0, 0), arrowRotationRad - Math.PI / 2);
-                arrowPosition.add(addVector);
+                    addVector.rotate(new Vector(0, 0), arrowRotationRad - Math.PI / 2);
+                    arrowPosition.add(addVector);
+                }
+
+                transform = "translate(" + (arrowPosition.x) + "," + arrowPosition.y + ") ";
             }
-
-            let transform = "translate(" + (arrowPosition.x) + "," + arrowPosition.y + ") ";
-
             if (this.state.arrowWidth !== null) {
                 transform += " rotate(" + arrowRotation + ")"
 
@@ -84,7 +96,7 @@ class Link extends React.Component<Props, State> {
                     this.nodeEventDispatcher.dispatch(new NodeSelected(0));
                 }}
                 >
-                    {this.renderLines()}
+                    {linePosition && this.renderLines(linePosition)}
                     <g ref={this.arrow} transform={
                         transform
                     }>
@@ -94,10 +106,30 @@ class Link extends React.Component<Props, State> {
             );
         }
 
+        return null;
+    }
+
+    private getArrowPosition(alpha: number) {
+
+        alpha = alpha %(Math.PI*2);
+
+        if(this.state.nodeView.nodeElement?.current && this.state.nodeView.link) {
+            let pathElement: SVGGeometryElement|null = this.state.nodeView.nodeElement.current.querySelector('.path');
+            if(pathElement && pathElement.getTotalLength() > 0) {
+                let length = pathElement.getTotalLength();
+                let point = pathElement.getPointAtLength(alpha/(Math.PI*2)*length);
+                let arrowVector = this.state.nodeView.link.nodeTo.position.clone().sub(this.state.nodeView.link.nodeFrom.position)
+
+                arrowVector.norm().mul(17);
+                return new Vector(point.x, point.y).add(this.state.nodeView.link.nodeTo.position).sub(arrowVector);
+
+            }
+        }
+
         return undefined;
     }
 
-    private renderLines() {
+    private renderLines(arrowPosition: Vector) {
         if (this.state.nodeView.link) {
             let arrowRotationVector, arrowRotationRad, addVector;
             switch (this.state.nodeView.link.type) {
@@ -105,8 +137,8 @@ class Link extends React.Component<Props, State> {
                     return (
                         <line x1={this.state.nodeView.link.nodeFrom.position.x}
                               y1={this.state.nodeView.link.nodeFrom.position.y}
-                              x2={this.state.nodeView.link.nodeTo.position.x}
-                              y2={this.state.nodeView.link.nodeTo.position.y}
+                              x2={arrowPosition.x}
+                              y2={arrowPosition.y}
                               stroke="#000"
                               strokeWidth="1"/>
                     )
@@ -121,14 +153,14 @@ class Link extends React.Component<Props, State> {
                         <g>
                             <line x1={this.state.nodeView.link.nodeFrom.position.x + addVector.x}
                                   y1={this.state.nodeView.link.nodeFrom.position.y + addVector.y}
-                                  x2={this.state.nodeView.link.nodeTo.position.x + addVector.x}
-                                  y2={this.state.nodeView.link.nodeTo.position.y + addVector.y}
+                                  x2={arrowPosition.x + addVector.x}
+                                  y2={arrowPosition.y + addVector.y}
                                   stroke="#000"
                                   strokeWidth="1"/>
                             <line x1={this.state.nodeView.link.nodeFrom.position.x - addVector.x}
                                   y1={this.state.nodeView.link.nodeFrom.position.y - addVector.y}
-                                  x2={this.state.nodeView.link.nodeTo.position.x - addVector.x}
-                                  y2={this.state.nodeView.link.nodeTo.position.y - addVector.y}
+                                  x2={arrowPosition.x - addVector.x}
+                                  y2={arrowPosition.y - addVector.y}
                                   stroke="#000"
                                   strokeWidth="1"/>
                         </g>
@@ -144,20 +176,20 @@ class Link extends React.Component<Props, State> {
                         <g>
                             <line x1={this.state.nodeView.link.nodeFrom.position.x - addVector.x}
                                   y1={this.state.nodeView.link.nodeFrom.position.y - addVector.y}
-                                  x2={this.state.nodeView.link.nodeTo.position.x - addVector.x}
-                                  y2={this.state.nodeView.link.nodeTo.position.y - addVector.y}
+                                  x2={arrowPosition.x - addVector.x}
+                                  y2={arrowPosition.y - addVector.y}
                                   stroke="#000"
                                   strokeWidth="1"/>
                             <line x1={this.state.nodeView.link.nodeFrom.position.x + addVector.x}
                                   y1={this.state.nodeView.link.nodeFrom.position.y + addVector.y}
-                                  x2={this.state.nodeView.link.nodeTo.position.x + addVector.x}
-                                  y2={this.state.nodeView.link.nodeTo.position.y + addVector.y}
+                                  x2={arrowPosition.x + addVector.x}
+                                  y2={arrowPosition.y + addVector.y}
                                   stroke="#000"
                                   strokeWidth="1"/>
                             <line x1={this.state.nodeView.link.nodeFrom.position.x + addVector.x}
                                   y1={this.state.nodeView.link.nodeFrom.position.y + addVector.y}
-                                  x2={this.state.nodeView.link.nodeTo.position.x - addVector.x}
-                                  y2={this.state.nodeView.link.nodeTo.position.y - addVector.y}
+                                  x2={arrowPosition.x - addVector.x}
+                                  y2={arrowPosition.y - addVector.y}
                                   stroke="#000"
                                   strokeWidth="1"/>
                         </g>

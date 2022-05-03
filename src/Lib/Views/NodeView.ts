@@ -40,7 +40,7 @@ export class NodeView {
                 this.nodeTextHeight = bBox.height;
 
                 let generator: RandomGenerator = new RandomGenerator();
-                this.nodePath = generator.generateBorder(this.nodeTextWidth * 1.2, this.nodeTextHeight * 1.7, 0.3, 0.5);
+                this.nodePath = generator.generateBorder(this.nodeTextWidth * 1.2, this.nodeTextHeight * 1.7, 0, 0);
             }
         }
         return this;

@@ -7,7 +7,7 @@ import {EventDispatcher} from "../../Lib/EventDispatcher";
 import {NODE} from "../../Lib/Constants/EventDispatcherNames";
 
 type Props = {
-    node: NodeModel
+    nodeView: NodeView
 }
 
 type State = {
@@ -20,10 +20,9 @@ class Node extends React.Component<Props, State> {
     constructor(props: Props) {
         super(props);
 
-        let nodeView = new NodeView(this.props.node);
-        nodeView.nodeElement = React.createRef<SVGGElement>();
+        this.props.nodeView.nodeElement = React.createRef<SVGGElement>();
         this.state = {
-            nodeView: nodeView
+            nodeView: this.props.nodeView
         };
     }
 
@@ -63,6 +62,7 @@ class Node extends React.Component<Props, State> {
 
                 <g className="colorWhite">
                     <path id={"border" + this.state.nodeView.node.id}
+                          className={"path"}
                           d={this.state.nodeView.nodePath}
                           stroke="black"
                           fill="currentColor"

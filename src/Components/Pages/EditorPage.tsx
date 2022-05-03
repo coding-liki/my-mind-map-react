@@ -44,7 +44,7 @@ class EditorPage extends React.Component<Props, State> {
     state: State;
     selectedNodeId: number = 0;
 
-    nodes: { [key: number]: NodeModel } = {};
+    nodeViews: { [key: number]: NodeView } = {};
     mouseEvent?: MouseEvent;
     lastMouseEvent?: MouseEvent;
 
@@ -63,18 +63,21 @@ class EditorPage extends React.Component<Props, State> {
             camera: new Camera(new Vector(0, 0, -1), new ViewPort(new Vector(0, 0), new Vector(0, 0))),
             mindMap: this.props.mindMap
         }
+
+        this.updateNodes(false);
+
     }
 
     addNewNode = () => {
         if (this.selectedNodeId > 0) {
-            this.state.mindMap.addChildNode(this.nodes[this.selectedNodeId])
+            this.state.mindMap.addChildNode(this.nodeViews[this.selectedNodeId].node)
             this.updateNodes();
-            this.setState(this.state);
-
         }
     }
 
     componentDidMount() {
+        this.updateNodes();
+
         let handler = new Handler(["ShiftLeft", "Equal"], () => {
             this.addNewNode();
         });
@@ -97,7 +100,7 @@ class EditorPage extends React.Component<Props, State> {
         });
 
         this.keyboardHandler.map.push(handler)
-        this.updateNodes();
+
 
         window.onresize = () => {
             this.onWindowResize();
@@ -113,7 +116,7 @@ class EditorPage extends React.Component<Props, State> {
     }
     private incrementLink() {
         if(this.selectedNodeId > 0) {
-            let selectedNode = this.nodes[this.selectedNodeId]
+            let selectedNode = this.nodeViews[this.selectedNodeId].node;
             if (selectedNode.parentNode ) {
                 switch (selectedNode.getLinkType()) {
                     case LinkType.fourth:
@@ -135,7 +138,7 @@ class EditorPage extends React.Component<Props, State> {
 
     private decrementLink() {
         if(this.selectedNodeId > 0) {
-            let selectedNode = this.nodes[this.selectedNodeId]
+            let selectedNode = this.nodeViews[this.selectedNodeId].node
             if (selectedNode.parentNode ) {
                 switch (selectedNode.getLinkType()) {
                     case LinkType.first:
@@ -179,7 +182,7 @@ class EditorPage extends React.Component<Props, State> {
 
     nodeSelected = (event: NodeSelected) => {
         if (event.nodeId !== 0) {
-            let nodeIndex = this.state.mindMap.nodes.indexOf(this.nodes[event.nodeId]);
+            let nodeIndex = this.state.mindMap.nodes.indexOf(this.nodeViews[event.nodeId].node);
             let node = this.state.mindMap.nodes[nodeIndex];
             this.state.mindMap.nodes.splice(nodeIndex, 1)
             this.state.mindMap.nodes.push(node);
@@ -199,10 +202,16 @@ class EditorPage extends React.Component<Props, State> {
         }
     }
 
-    private updateNodes() {
+    private updateNodes(updateState = true) {
         this.state.mindMap.nodes.forEach((node: NodeModel) => {
-            this.nodes[node.id] = node;
+            this.nodeViews[node.id] = new NodeView(node);
+            this.nodeViews[node.id].updateLink();
         });
+
+        if(updateState){
+            setTimeout(()=>this.setState(this.state));
+        }
+
     }
 
     onWindowResize = () => {
@@ -246,7 +255,7 @@ class EditorPage extends React.Component<Props, State> {
 
                         this.setState(this.state);
                     } else if (this.selectedNodeId > 0 && !this.state.editingNodeView) {
-                        let node = this.nodes[this.selectedNodeId];
+                        let node = this.nodeViews[this.selectedNodeId].node;
                         this.state.camera.move(new Vector(
                             this.mouseEvent.clientX - this.lastMouseEvent.clientX,
                             this.mouseEvent.clientY - this.lastMouseEvent.clientY
@@ -293,7 +302,7 @@ class EditorPage extends React.Component<Props, State> {
         return this.state.mindMap.nodes.map((value: NodeModel) => {
             if (value && value.parentLinkNode) {
                 return (
-                    <Link key={value.id} node={value}/>
+                    <Link key={value.id} nodeView={this.nodeViews[value.id]}/>
                 )
             } else {
                 return null;
@@ -305,7 +314,7 @@ class EditorPage extends React.Component<Props, State> {
         return this.state.mindMap.nodes.map((value: NodeModel) => {
             if (value) {
                 return (
-                    <Node key={value.id} node={value}/>
+                    <Node key={value.id} nodeView={this.nodeViews[value.id]}/>
                 )
             } else {
                 return null;
@@ -336,9 +345,9 @@ class EditorPage extends React.Component<Props, State> {
                         height={this.state.camera.initViewPort.dimensions.y}
                         viewBox={this.state.camera.getViewPort().getString()}
                     >
-                        <circle cx="10" cy="10" r="5" fill="red"/>
-                        {this.renderLinks()}
+                        <circle cx="0" cy="0" r="5" fill="red"/>
 
+                        {this.renderLinks()}
                         {this.renderNodes()}
 
                         {
