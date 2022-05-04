@@ -213,26 +213,26 @@ class Link extends React.Component<Props, State> {
                         <g>
                             <line x1={this.state.nodeView.link.nodeFrom.position.x - addVector.x}
                                   y1={this.state.nodeView.link.nodeFrom.position.y - addVector.y}
-                                  x2={this.state.nodeView.link.nodeTo.position.x - addVector.x}
-                                  y2={this.state.nodeView.link.nodeTo.position.y - addVector.y}
+                                  x2={arrowPosition.x - addVector.x}
+                                  y2={arrowPosition.y - addVector.y}
                                   stroke="#000"
                                   strokeWidth="1"/>
                             <line x1={this.state.nodeView.link.nodeFrom.position.x + addVector.x}
                                   y1={this.state.nodeView.link.nodeFrom.position.y + addVector.y}
-                                  x2={this.state.nodeView.link.nodeTo.position.x + addVector.x}
-                                  y2={this.state.nodeView.link.nodeTo.position.y + addVector.y}
+                                  x2={arrowPosition.x + addVector.x}
+                                  y2={arrowPosition.y + addVector.y}
                                   stroke="#000"
                                   strokeWidth="1"/>
                             <line x1={this.state.nodeView.link.nodeFrom.position.x + addVector.x}
                                   y1={this.state.nodeView.link.nodeFrom.position.y + addVector.y}
-                                  x2={this.state.nodeView.link.nodeTo.position.x - addVector.x}
-                                  y2={this.state.nodeView.link.nodeTo.position.y - addVector.y}
+                                  x2={arrowPosition.x - addVector.x}
+                                  y2={arrowPosition.y - addVector.y}
                                   stroke="#000"
                                   strokeWidth="1"/>
                             <line x1={this.state.nodeView.link.nodeFrom.position.x - addVector.x}
                                   y1={this.state.nodeView.link.nodeFrom.position.y - addVector.y}
-                                  x2={this.state.nodeView.link.nodeTo.position.x + addVector.x}
-                                  y2={this.state.nodeView.link.nodeTo.position.y + addVector.y}
+                                  x2={arrowPosition.x + addVector.x}
+                                  y2={arrowPosition.y + addVector.y}
                                   stroke="#000"
                                   strokeWidth="1"/>
                         </g>
