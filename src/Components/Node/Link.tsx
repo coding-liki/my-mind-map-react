@@ -1,6 +1,5 @@
 // import {Camera} from "../../Lib/Svg/Editor/Camera";
 import React, {RefObject} from "react";
-import {Node} from '../../Lib/Models/Node'
 import {NodeView} from "../../Lib/Views/NodeView";
 import {Vector} from "../../Lib/Math";
 import {ReactComponent as Arrow} from '../../img/arrow.svg';
@@ -8,9 +7,11 @@ import {LinkType} from "../../Lib/Models/Link";
 import {EventDispatcher} from "../../Lib/EventDispatcher";
 import {NODE} from "../../Lib/Constants/EventDispatcherNames";
 import {NODE_LINK_UPDATED, NodeLinkUpdated, NodeSelected} from "../../Lib/Constants/Events";
+import {Camera} from "../../Lib/Svg/Editor/Camera";
 
 type Props = {
-    nodeView: NodeView;
+    nodeView: NodeView
+    camera: Camera
 }
 
 type State = {
@@ -97,9 +98,16 @@ class Link extends React.Component<Props, State> {
                 }}
                 >
                     {linePosition && this.renderLines(linePosition)}
-                    <g ref={this.arrow} transform={
+                    <g transform={
                         transform
                     }>
+                        <Arrow/>
+                    </g>
+
+                    <g
+                        ref={this.arrow}
+                        transform={"translate(" + (this.state.nodeView.link.nodeTo.position.x) + "," + this.state.nodeView.link.nodeTo.position.y + ") "}
+                    >
                         <Arrow/>
                     </g>
                 </g>
@@ -239,7 +247,10 @@ class Link extends React.Component<Props, State> {
         if (this.arrow.current && this.state.nodeView.link) {
             let boundaries = this.arrow.current.getBoundingClientRect();
 
-            this.setState({arrowWidth: (boundaries.width) + 1.25});
+            let ratio = this.props.camera.position.z/this.props.camera.initPosition.z;
+
+            console.log(ratio);
+            this.setState({arrowWidth: (boundaries.width*ratio) + 1.25});
         }
     }
 

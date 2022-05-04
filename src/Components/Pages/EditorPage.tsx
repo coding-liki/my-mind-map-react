@@ -302,7 +302,7 @@ class EditorPage extends React.Component<Props, State> {
         return this.state.mindMap.nodes.map((value: NodeModel) => {
             if (value && value.parentLinkNode) {
                 return (
-                    <Link key={value.id} nodeView={this.nodeViews[value.id]}/>
+                    <Link key={value.id} nodeView={this.nodeViews[value.id]} camera={this.state.camera}/>
                 )
             } else {
                 return null;
