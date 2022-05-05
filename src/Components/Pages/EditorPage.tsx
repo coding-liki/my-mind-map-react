@@ -22,16 +22,20 @@ import Link from "../Node/Link";
 import TextEditor from "../Node/TextEditor";
 import {NodeView} from "../../Lib/Views/NodeView";
 import {LinkType} from "../../Lib/Models/Link";
+import ConfirmationDialog from "../Lib/Window/ConfirmationDialog";
+import MindMapHistory from "../../Lib/Models/MindMapHistory";
+import mindMapHistory from "../../Lib/Models/MindMapHistory";
 
 type Props = {
-    active?: boolean;
-    mindMap: MindMap;
+    active?: boolean
+    mindMap: MindMap
 }
 
 type State = {
-    camera: Camera,
-    mindMap: MindMap,
-    editingNodeView?: NodeView;
+    camera: Camera
+    mindMap: MindMap
+    editingNodeView?: NodeView
+    deleteDialogOpen: boolean
 }
 
 class EditorPage extends React.Component<Props, State> {
@@ -55,14 +59,17 @@ class EditorPage extends React.Component<Props, State> {
 
     mouseState: string = EditorPage.MOUSE_STATE_UP;
     mouseMode: string = EditorPage.MOUSE_MODE_MOVE;
-
+    mindMapHistory: MindMapHistory;
     constructor(props: Props) {
         super(props);
         this.svgNode = React.createRef<SVGSVGElement>();
         this.state = {
             camera: new Camera(new Vector(0, 0, -1), new ViewPort(new Vector(0, 0), new Vector(0, 0))),
-            mindMap: this.props.mindMap
+            mindMap: this.props.mindMap,
+            deleteDialogOpen: false
         }
+
+        this.mindMapHistory = new MindMapHistory(this.state.mindMap);
 
         this.updateNodes(false);
 
@@ -70,8 +77,10 @@ class EditorPage extends React.Component<Props, State> {
 
     addNewNode = () => {
         if (this.selectedNodeId > 0) {
+            this.mindMapHistory.push();
             this.state.mindMap.addChildNode(this.nodeViews[this.selectedNodeId].node)
             this.updateNodes();
+
         }
     }
 
@@ -98,6 +107,33 @@ class EditorPage extends React.Component<Props, State> {
         handler = new Handler(["ShiftRight", "KeyL"], () => {
             this.decrementLink();
         });
+        this.keyboardHandler.map.push(handler)
+
+        handler = new Handler(["Delete"], () => {
+            if (this.selectedNodeId > 0) {
+                this.setState({
+                    deleteDialogOpen: true
+                });
+            }
+        });
+
+        this.keyboardHandler.map.push(handler)
+
+        handler = new Handler(["ControlLeft","KeyZ"], () => {
+            this.mindMapHistory.up();
+            this.setState({
+                mindMap: this.mindMapHistory.current
+            });
+        });
+        this.keyboardHandler.map.push(handler)
+
+
+        handler = new Handler(["ShiftLeft", "ControlLeft","KeyZ"], () => {
+            this.mindMapHistory.down();
+            this.setState({
+                mindMap: this.mindMapHistory.current
+            });
+        });
 
         this.keyboardHandler.map.push(handler)
 
@@ -114,10 +150,11 @@ class EditorPage extends React.Component<Props, State> {
 
         this.keyboardHandler.subscribe();
     }
+
     private incrementLink() {
-        if(this.selectedNodeId > 0) {
+        if (this.selectedNodeId > 0) {
             let selectedNode = this.nodeViews[this.selectedNodeId].node;
-            if (selectedNode.parentNode ) {
+            if (selectedNode.parentNode) {
                 switch (selectedNode.getLinkType()) {
                     case LinkType.fourth:
                         selectedNode.parentNode = selectedNode.parentLinkNode;
@@ -137,9 +174,9 @@ class EditorPage extends React.Component<Props, State> {
     }
 
     private decrementLink() {
-        if(this.selectedNodeId > 0) {
+        if (this.selectedNodeId > 0) {
             let selectedNode = this.nodeViews[this.selectedNodeId].node
-            if (selectedNode.parentNode ) {
+            if (selectedNode.parentNode) {
                 switch (selectedNode.getLinkType()) {
                     case LinkType.first:
                         if (selectedNode.parentLinkNode?.parentNode?.parentNode?.parentNode) {
@@ -205,11 +242,11 @@ class EditorPage extends React.Component<Props, State> {
     private updateNodes(updateState = true) {
         this.state.mindMap.nodes.forEach((node: NodeModel) => {
             this.nodeViews[node.id] = new NodeView(node);
-            this.nodeViews[node.id].updateLink();
+            setTimeout(() => this.nodeEventDispatcher.dispatch(new NodeLinkUpdated(node.id)), 10);
         });
 
-        if(updateState){
-            setTimeout(()=>this.setState(this.state));
+        if (updateState) {
+            setTimeout(() => this.setState(this.state));
         }
 
     }
@@ -355,12 +392,41 @@ class EditorPage extends React.Component<Props, State> {
                             <TextEditor nodeView={this.state.editingNodeView}></TextEditor>
                         }
 
+                        {
+                            this.renderDeleteDialog()
+                        }
                     </svg>
                 </Page>
             </div>
         );
     }
 
+    private renderDeleteDialog() {
+        return (
+            <ConfirmationDialog
+                open={this.state.deleteDialogOpen}
+                title={"Точно удаляем?"}
+                onConfirm={this.deleteNode}
+                onCancel={() => {
+                    this.setState({
+                        deleteDialogOpen: false
+                    })
+                }}
+            >
+                Буден удалена нода {this.selectedNodeId}.
+            </ConfirmationDialog>
+        )
+    }
+
+    private deleteNode = () => {
+        this.state.mindMap.deleteNode(this.nodeViews[this.selectedNodeId].node)
+        this.setState({
+            deleteDialogOpen: false
+        });
+        this.mindMapHistory.push();
+
+        // console.log("Deleting node "+this.selectedNodeId);
+    }
 }
 
 

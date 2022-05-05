@@ -1,12 +1,12 @@
 @font-face {
     font-family: "MarkScript";
-    src: url("../../public/fonts/MarckScript-Regular.ttf") format('truetype');
+    src: url("../fonts/MarckScript-Regular.ttf") format('truetype');
     font-weight: normal;
     font-style: normal;
 }
 @font-face{
     font-family: "Alexander";
-    src: url("../../public/fonts/Alexander.otf") format('opentype');
+    src: url("../fonts/Alexander.otf") format('opentype');
     font-weight: normal;
     font-style: normal;
 }

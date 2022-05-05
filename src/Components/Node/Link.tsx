@@ -2,7 +2,7 @@
 import React, {RefObject} from "react";
 import {NodeView} from "../../Lib/Views/NodeView";
 import {Vector} from "../../Lib/Math";
-import {ReactComponent as Arrow} from '../../img/arrow.svg';
+import {ReactComponent as Arrow} from '../../img/arrow1.svg';
 import {LinkType} from "../../Lib/Models/Link";
 import {EventDispatcher} from "../../Lib/EventDispatcher";
 import {NODE} from "../../Lib/Constants/EventDispatcherNames";
@@ -17,37 +17,32 @@ type Props = {
 type State = {
     nodeView: NodeView
     arrowWidth: number | null
+    arrow: RefObject<SVGSVGElement>
 }
 
 class Link extends React.Component<Props, State> {
-    arrow: RefObject<SVGSVGElement>
+
     nodeEventDispatcher: EventDispatcher = EventDispatcher.instance(NODE);
 
     constructor(props: Props) {
         super(props);
-        this.arrow = React.createRef<SVGSVGElement>();
+        // this.arrow = React.createRef<SVGSVGElement>();
 
         this.state = {
             nodeView: this.props.nodeView,
-            arrowWidth: null
+            arrowWidth: null,
+            arrow: React.createRef<SVGSVGElement>()
         }
     }
 
     componentDidMount() {
         this.state.nodeView.updateLink()
 
-        // if (this.state.arrowWidth === null) {
-        //     this.calculateArrowWidth();
-        // }
         this.nodeEventDispatcher.subscribe(NODE_LINK_UPDATED, this.nodeLinkUpdated);
         this.setState({arrowWidth: null})
-    }
-
-    componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any) {
-        if (this.state.arrowWidth === null) {
-            this.calculateArrowWidth();
+        if(this.calculateArrowWidth() === 0 ){
+            this.setState(this.state);
         }
-
     }
 
     componentWillUnmount() {
@@ -57,6 +52,12 @@ class Link extends React.Component<Props, State> {
     nodeLinkUpdated = (event: NodeLinkUpdated) => {
         if (this.state.nodeView.node.id === event.nodeId) {
             this.state.nodeView.updateLink();
+            this.setState(this.state);
+        }
+    }
+
+    componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any) {
+        if(this.calculateArrowWidth() === 0 ){
             this.setState(this.state);
         }
     }
@@ -74,13 +75,15 @@ class Link extends React.Component<Props, State> {
             let arrowRotation = arrowRotationRad * 180 / Math.PI - 90;
 
             let linePosition = this.getArrowPosition(arrowRotationRad + Math.PI);
+            let arrowWidth = this.calculateArrowWidth()
 
             let transform = "";
             if (linePosition) {
                 let arrowPosition = linePosition.clone();
 
-                if (this.state.arrowWidth !== null) {
-                    let addVector = new Vector(-this.state.arrowWidth / 2 + 0.5, 0);
+                if (arrowWidth > 0 ){
+
+                    let addVector = new Vector(-arrowWidth/ 2 + 0.5, 0);
 
                     addVector.rotate(new Vector(0, 0), arrowRotationRad - Math.PI / 2);
                     arrowPosition.add(addVector);
@@ -88,10 +91,9 @@ class Link extends React.Component<Props, State> {
 
                 transform = "translate(" + (arrowPosition.x) + "," + arrowPosition.y + ") ";
             }
-            if (this.state.arrowWidth !== null) {
-                transform += " rotate(" + arrowRotation + ")"
 
-            }
+            transform += " rotate(" + arrowRotation + ")"
+
             return (
                 <g onMouseDown={() => {
                     this.nodeEventDispatcher.dispatch(new NodeSelected(0));
@@ -105,7 +107,7 @@ class Link extends React.Component<Props, State> {
                     </g>
 
                     <g
-                        ref={this.arrow}
+                        ref={this.state.arrow}
                         transform={"translate(" + (this.state.nodeView.link.nodeTo.position.x) + "," + this.state.nodeView.link.nodeTo.position.y + ") "}
                     >
                         <Arrow/>
@@ -244,14 +246,15 @@ class Link extends React.Component<Props, State> {
     }
 
     private calculateArrowWidth() {
-        if (this.arrow.current && this.state.nodeView.link) {
-            let boundaries = this.arrow.current.getBoundingClientRect();
+        if (this.state.arrow.current && this.state.nodeView.link) {
+            let boundaries = this.state.arrow.current.getBoundingClientRect();
 
             let ratio = this.props.camera.position.z/this.props.camera.initPosition.z;
 
-            console.log(ratio);
-            this.setState({arrowWidth: (boundaries.width*ratio) + 1.25});
+            return (boundaries.width*ratio)+1.3
         }
+
+        return 0
     }
 
 }
