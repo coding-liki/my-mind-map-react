@@ -25,6 +25,7 @@ import {LinkType} from "../../Lib/Models/Link";
 import ConfirmationDialog from "../Lib/Window/ConfirmationDialog";
 import MindMapHistory from "../../Lib/Models/MindMapHistory";
 import mindMapHistory from "../../Lib/Models/MindMapHistory";
+import LocalStorage from "../../Lib/LocalStorage";
 
 type Props = {
     active?: boolean
@@ -60,6 +61,8 @@ class EditorPage extends React.Component<Props, State> {
     mouseState: string = EditorPage.MOUSE_STATE_UP;
     mouseMode: string = EditorPage.MOUSE_MODE_MOVE;
     mindMapHistory: MindMapHistory;
+
+    saveInterval?: NodeJS.Timer;
     constructor(props: Props) {
         super(props);
         this.svgNode = React.createRef<SVGSVGElement>();
@@ -96,13 +99,11 @@ class EditorPage extends React.Component<Props, State> {
         });
         this.keyboardHandler.map.push(handler)
 
-
         handler = new Handler(["ShiftRight", "KeyP"], () => {
             this.incrementLink();
         });
 
         this.keyboardHandler.map.push(handler)
-
 
         handler = new Handler(["ShiftRight", "KeyL"], () => {
             this.decrementLink();
@@ -119,7 +120,7 @@ class EditorPage extends React.Component<Props, State> {
 
         this.keyboardHandler.map.push(handler)
 
-        handler = new Handler(["ControlLeft","KeyZ"], () => {
+        handler = new Handler(["ControlLeft", "KeyZ"], () => {
             this.mindMapHistory.up();
             this.setState({
                 mindMap: this.mindMapHistory.current
@@ -127,8 +128,7 @@ class EditorPage extends React.Component<Props, State> {
         });
         this.keyboardHandler.map.push(handler)
 
-
-        handler = new Handler(["ShiftLeft", "ControlLeft","KeyZ"], () => {
+        handler = new Handler(["ShiftLeft", "ControlLeft", "KeyZ"], () => {
             this.mindMapHistory.down();
             this.setState({
                 mindMap: this.mindMapHistory.current
@@ -149,6 +149,11 @@ class EditorPage extends React.Component<Props, State> {
         this.onWindowResize();
 
         this.keyboardHandler.subscribe();
+
+        this.saveInterval = setInterval(() => {
+            LocalStorage.set('lastMindMap', this.state.mindMap.toJson());
+            console.log("save mind map");
+        }, 2000);
     }
 
     private incrementLink() {
@@ -207,6 +212,10 @@ class EditorPage extends React.Component<Props, State> {
         this.eventDispatcher.unsubscribe(PAGE_ENABLED, this.pageEnabled)
         this.nodeEventDispatcher.unsubscribe(NODE_SELECTED, this.nodeSelected);
         this.nodeEventDispatcher.unsubscribe(NODE_START_EDIT, this.nodeStartEdit);
+
+        if(this.saveInterval) {
+            clearInterval(this.saveInterval)
+        }
     }
 
     private nodeStartEdit = (event: NodeStartEdit) => {
@@ -424,8 +433,6 @@ class EditorPage extends React.Component<Props, State> {
             deleteDialogOpen: false
         });
         this.mindMapHistory.push();
-
-        // console.log("Deleting node "+this.selectedNodeId);
     }
 }
 
