@@ -1,11 +1,18 @@
-export class Vector {
+export interface Coordinates {
+    x: number;
+    y: number;
+    z: number;
+}
+
+export class Vector implements Coordinates{
     x: number = 0;
     y: number = 0;
     z: number = 0;
-    static sinValues: {[key: string]: number} = {};
-    static cosValues: {[key: string]: number} = {};
-    static acosValues: {[key: string]: number} = {};
-    static atanValues: {[key: string]: number} = {};
+
+    static sinValues: { [key: string]: number } = {};
+    static cosValues: { [key: string]: number } = {};
+    static acosValues: { [key: string]: number } = {};
+    static atanValues: { [key: string]: number } = {};
 
     constructor(x: number = 0, y: number = 0, z: number = 0) {
         this.x = x;
@@ -13,8 +20,12 @@ export class Vector {
         this.z = z;
     }
 
+    static fromCoordinates(a: Coordinates): Vector {
+        return new Vector(a.x, a.y, a.z);
+    }
+
     length(): number {
-        return Math.sqrt(this.x * this.x + this.y * this.y + this.z*this.z);
+        return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
     }
 
     norm(): Vector {

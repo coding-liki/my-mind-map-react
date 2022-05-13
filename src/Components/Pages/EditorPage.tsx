@@ -24,8 +24,8 @@ import {NodeView} from "../../Lib/Views/NodeView";
 import {LinkType} from "../../Lib/Models/Link";
 import ConfirmationDialog from "../Lib/Window/ConfirmationDialog";
 import MindMapHistory from "../../Lib/Models/MindMapHistory";
-import mindMapHistory from "../../Lib/Models/MindMapHistory";
 import LocalStorage from "../../Lib/LocalStorage";
+import {HAS_CHECKBOX} from "../../Lib/Constants/NodeTypes";
 
 type Props = {
     active?: boolean
@@ -120,22 +120,28 @@ class EditorPage extends React.Component<Props, State> {
 
         this.keyboardHandler.map.push(handler)
 
-        handler = new Handler(["ControlLeft", "KeyZ"], () => {
-            this.mindMapHistory.up();
-            this.setState({
-                mindMap: this.mindMapHistory.current
-            });
+        handler = new Handler(["ShiftLeft", "KeyC"], () => {
+            this.toggleCheckboxType();
         });
         this.keyboardHandler.map.push(handler)
 
-        handler = new Handler(["ShiftLeft", "ControlLeft", "KeyZ"], () => {
-            this.mindMapHistory.down();
-            this.setState({
-                mindMap: this.mindMapHistory.current
-            });
-        });
 
-        this.keyboardHandler.map.push(handler)
+        // handler = new Handler(["ControlLeft", "KeyZ"], () => {
+        //     this.mindMapHistory.up();
+        //     this.setState({
+        //         mindMap: this.mindMapHistory.current
+        //     });
+        // });
+        // this.keyboardHandler.map.push(handler)
+        //
+        // handler = new Handler(["ShiftLeft", "ControlLeft", "KeyZ"], () => {
+        //     this.mindMapHistory.down();
+        //     this.setState({
+        //         mindMap: this.mindMapHistory.current
+        //     });
+        // });
+        //
+        // this.keyboardHandler.map.push(handler)
 
 
         window.onresize = () => {
@@ -433,6 +439,14 @@ class EditorPage extends React.Component<Props, State> {
             deleteDialogOpen: false
         });
         this.mindMapHistory.push();
+    }
+
+    private toggleCheckboxType() {
+        if(this.selectedNodeId > 0) {
+            let selectedNode = this.nodeViews[this.selectedNodeId];
+            selectedNode.node.toggleType(HAS_CHECKBOX)
+            this.setState({});
+        }
     }
 }
 

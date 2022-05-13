@@ -2,7 +2,7 @@
 import React, {RefObject} from "react";
 import {NodeView} from "../../Lib/Views/NodeView";
 import {Vector} from "../../Lib/Math";
-import {ReactComponent as Arrow} from '../../img/arrow1.svg';
+import {ReactComponent as Arrow} from '../../img/arrow.svg';
 import {LinkType} from "../../Lib/Models/Link";
 import {EventDispatcher} from "../../Lib/EventDispatcher";
 import {NODE} from "../../Lib/Constants/EventDispatcherNames";
@@ -251,7 +251,7 @@ class Link extends React.Component<Props, State> {
 
             let ratio = this.props.camera.position.z/this.props.camera.initPosition.z;
 
-            return (boundaries.width*ratio)+1.3
+            return (boundaries.width*ratio)
         }
 
         return 0

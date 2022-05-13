@@ -70,7 +70,7 @@ class TextEditor extends React.Component<Props, State> {
                                 onChange={this.textChanged} onMouseDown={() => {
                                 this.nodeEventDispatcher.dispatch(new NodeSelected(this.props.nodeView.node.id));
                             }} className={"alexander "} value={this.props.nodeView.node.text}
-                                style={{width: (width - 10) + "px", height: (height - 6) + "px", resize: "none"}}></textarea>
+                                style={{width: (width) + "px", height: (height) + "px", resize: "none"}}></textarea>
                 </div>
             </foreignObject>
         ) : null;

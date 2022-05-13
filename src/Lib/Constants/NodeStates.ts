@@ -1,0 +1,1 @@
+export const NODE_CHECKED = 'node_checked';

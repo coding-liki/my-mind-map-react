@@ -3,7 +3,7 @@ import Header from "./Header";
 import '../css/PageContainer.css';
 import EditorPage from "./Pages/EditorPage";
 import ListPage from "./Pages/ListPage";
-import MindMap from "../Lib/Models/MindMap";
+import MindMap, {MindMapJson} from "../Lib/Models/MindMap";
 import RandomGenerator from "../Svg/RandomGenerator";
 import LocalStorage from "../Lib/LocalStorage";
 
@@ -55,9 +55,22 @@ function AllPages() {
 
     let mindMap = getMindMap();
 
+    function getMindMaps(mindMapEdited: MindMap) {
+        let mindMapsRaw: string|null = LocalStorage.get('mindMaps');
+
+        if(!mindMapsRaw) {
+            return [mindMapEdited];
+        } else {
+            let mindMapsArray: MindMapJson[] = JSON.parse(mindMapsRaw);
+            return mindMapsArray.map((mindMap) => {
+                return MindMap.fromJson(mindMap);
+            })
+        }
+    }
+
     return (<Fragment>
         <EditorPage active={true} mindMap={mindMap}/>
-        <ListPage/>
+        <ListPage mindMaps={getMindMaps(mindMap)}/>
     </Fragment>);
 }
 

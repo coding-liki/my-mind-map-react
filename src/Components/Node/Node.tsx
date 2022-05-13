@@ -1,10 +1,11 @@
 import React from "react";
-import {Node as NodeModel} from "../../Lib/Models/Node"
 import {NodeView} from "../../Lib/Views/NodeView";
 import '../../css/Node.css';
 import {NODE_SELECTED, NODE_UPDATE_TEXT, NodeSelected, NodeStartEdit, NodeUpdateText} from "../../Lib/Constants/Events";
 import {EventDispatcher} from "../../Lib/EventDispatcher";
 import {NODE} from "../../Lib/Constants/EventDispatcherNames";
+import {HAS_CHECKBOX} from "../../Lib/Constants/NodeTypes";
+import {NODE_CHECKED} from "../../Lib/Constants/NodeStates";
 
 type Props = {
     nodeView: NodeView
@@ -94,7 +95,17 @@ class Node extends React.Component<Props, State> {
                          }}
                     />
                 </g>
-
+                { this.state.nodeView.node.hasType(HAS_CHECKBOX) &&
+                    <foreignObject
+                        transform={"translate(" + (this.state.nodeView.nodeTextWidth / 2) + ", " + (-this.state.nodeView.nodeTextHeight) + ")"}
+                        width={17} height={17}>
+                        <input type="checkbox" checked={this.state.nodeView.node.hasState(NODE_CHECKED)} onChange={() => {
+                            this.state.nodeView.node.toggleState(NODE_CHECKED)
+                            this.setState({})
+                        }
+                        }/>
+                    </foreignObject>
+                }
             </g>
         );
     }

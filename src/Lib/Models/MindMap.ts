@@ -4,16 +4,17 @@ import {EventDispatcher} from "../EventDispatcher";
 import {NODE} from "../Constants/EventDispatcherNames";
 import {NodeLinkUpdated} from "../Constants/Events";
 import {Vector} from "../Math";
-import {NodeView} from "../Views/NodeView";
 
-type NodeJson = {
+export type NodeJson = {
     id: number;
     text: string;
     position: Vector;
+    type?: string[];
+    state?: string[];
     parentId?: number;
     parentLinkId?: number;
 }
-type MindMapJson = {
+export type MindMapJson = {
     id: number;
     name: string;
     nodes: NodeJson[];
@@ -34,7 +35,13 @@ export default class MindMap {
         let nodesMap: { [key: number]: Node } = [];
         let nodes: Node[] = [];
         json.nodes.forEach((node: NodeJson) => {
-            nodesMap[node.id] = new Node(node.id, node.text, node.position);
+            nodesMap[node.id] = new Node(node.id, node.text, Vector.fromCoordinates(node.position));
+            if(node.type) {
+                nodesMap[node.id].type = node.type;
+            }
+            if(node.state) {
+                nodesMap[node.id].state = node.state;
+            }
             nodes.push(nodesMap[node.id]);
         });
 
@@ -57,6 +64,8 @@ export default class MindMap {
                 id: node.id,
                 text: node.text,
                 position: node.position,
+                type: node.type,
+                state: node.state,
                 parentId: node.parentNode?.id,
                 parentLinkId: node.parentLinkNode?.id,
             }

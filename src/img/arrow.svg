@@ -1,10 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" >
+<svg xmlns="http://www.w3.org/2000/svg">
     <defs>
-        <style>.cls-1{fill:#1d1d1b;stroke:#1d1d1b;}</style>
+        <style>.cls-1{fill:#1d1d1b;stroke:#1d1d1b;stroke-miterlimit:10;}</style>
     </defs>
     <g id="Слой_2">
         <g id="Слой_1-2">
-            <polygon class="cls-1" points="0.5 0 12.5 0 6.5 12 0.5 0"/>
+            <path
+                    fill="#1d1d1b"
+                  d="M6.0,14.75Q8.87,6,11.75,0.31A10.51,10.76,0,0,1,5.87,1.9,10.51,10.76,0,0,1,0,0.31Z"/>
         </g>
     </g>
 </svg>
